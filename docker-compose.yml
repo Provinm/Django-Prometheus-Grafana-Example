@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  prom_data: {}
+  graf_data: {}
+
+services: 
+  web: 
+    build: .
+    ports: 
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - .:/server
+
+    command: tail -f /server/requirements.txt
+        
+  promethus:
+    image: prom/prometheus
+    volumes:
+      - prom_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9090:9090"
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - graf_data:/var/lib/grafana
+    environment:
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_JSON_ENABLED=true
